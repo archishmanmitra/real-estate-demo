@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink:    #0C0C0E;
+  --color-coal:   #131318;  /* lifted ink — card surfaces, alternating bands */
+  --color-ivory:  #F5F0E8;
+  --color-stone:  #C8B89A;
+  --color-amber:  #D4873A;
+  --color-ember:  #B06D2A;  /* deep amber — borders, pressed states */
+  --color-steel:  #6B7280;
+  --color-white:  #FAFAF8;
+
+  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-body:    "DM Sans", system-ui, sans-serif;
+  --font-mono:    "DM Mono", monospace;
+
+  --text-wordmark: clamp(5rem, 15vw, 16rem);
+  --text-display:  clamp(2.5rem, 6vw, 5rem);
+  --text-xl:       clamp(1.5rem, 3vw, 2.5rem);
+  --text-label:    0.7rem;
+}
+
+/* Grain overlay utility — inline SVG noise, no asset required */
+.grain::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  z-index: 9999;
+}
+
+::selection {
+  background: #D4873A;
+  color: #0C0C0E;
+}
+
+/* Focus rings — amber, 2px, visible for keyboard nav */
+/* !important so buttons reset with inline `all: unset` keep a visible ring */
+*:focus-visible {
+  outline: 2px solid #D4873A !important;
+  outline-offset: 3px;
+}
+
+/* Reduced motion baseline */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

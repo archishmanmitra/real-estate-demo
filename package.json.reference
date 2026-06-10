@@ -1,0 +1,37 @@
+{
+  "name": "akshar-realty",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@gsap/react": "latest",
+    "@radix-ui/react-accordion": "latest",
+    "@radix-ui/react-dialog": "latest",
+    "@react-three/drei": "latest",
+    "@react-three/fiber": "latest",
+    "@react-three/postprocessing": "latest",
+    "clsx": "latest",
+    "gsap": "latest",
+    "lenis": "latest",
+    "motion": "latest",
+    "next": "15",
+    "react": "19",
+    "react-dom": "19",
+    "tailwind-merge": "latest",
+    "three": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@types/three": "latest",
+    "typescript": "latest",
+    "vite-plugin-glsl": "latest"
+  },
+  "notes": "Run 'pnpm install' or 'npm install' after setting up the Next.js project via create-next-app (see docs/SETUP.md). This file is for reference — create-next-app generates its own package.json."
+}
