@@ -6,20 +6,73 @@ import { useGSAP } from "@gsap/react";
 import { gsap, SplitText, motionSafe } from "@/lib/gsap";
 import { properties, discoveryCopy } from "@/lib/data";
 import { Crosshairs } from "../fx/Crosshairs";
+import { useTransitionRouter } from "../transition/PageTransition";
 
 const FILTERS = ["All", "Apartments", "Villas", "Plots"] as const;
 type Filter = (typeof FILTERS)[number];
 
-const CARD_CONFIG = [
-  { top: "4%",  right: "4%",  rotate: -4 },
-  { top: "14%", right: "22%", rotate:  3 },
-  { top: "36%", right: "6%",  rotate: -1 },
-  { top: "52%", right: "24%", rotate:  5 },
-] as const;
-
 export function DiscoverySection() {
   const sectionRef = useRef<HTMLElement>(null);
   const [activeFilter, setActiveFilter] = useState<Filter>("All");
+  const { navigate } = useTransitionRouter();
+
+  // Rotation states for the interactive wheel
+  const scrollRotRef = useRef(-30);
+  const mouseRotRef = useRef(0);
+  const wheelRotRef = useRef(0);
+  const currentRotRef = useRef(-30);
+
+  const matchesFilter = (prop: typeof properties[number]) => {
+    if (activeFilter === "All") return true;
+    if (activeFilter === "Apartments") return prop.type === "apartment";
+    if (activeFilter === "Villas") return prop.type === "villa";
+    if (activeFilter === "Plots") return prop.type === "plot";
+    return true;
+  };
+
+  // ── Mouse & Wheel Interaction Handlers ─────────────────────────────
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const y = e.clientY - rect.top;
+    const ratio = y / rect.height;
+    const targetMouseRot = (ratio - 0.5) * -18;
+
+    gsap.to(mouseRotRef, {
+      current: targetMouseRot,
+      duration: 0.8,
+      ease: "power2.out",
+      overwrite: "auto",
+    });
+  };
+
+  const handleMouseLeave = () => {
+    gsap.to(mouseRotRef, {
+      current: 0,
+      duration: 1.0,
+      ease: "power2.out",
+      overwrite: "auto",
+    });
+    gsap.to(wheelRotRef, {
+      current: 0,
+      duration: 1.0,
+      ease: "power2.out",
+      overwrite: "auto",
+    });
+  };
+
+  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    wheelRotRef.current += e.deltaY * 0.045;
+    // Clamp the manual scroll wheel offset
+    wheelRotRef.current = Math.max(-34, Math.min(34, wheelRotRef.current));
+
+    // Smoothly decay wheel offset back to zero
+    gsap.to(wheelRotRef, {
+      current: 0,
+      duration: 1.6,
+      ease: "power3.out",
+      overwrite: "auto",
+    });
+  };
 
   useGSAP(
     () => {
@@ -28,12 +81,71 @@ export function DiscoverySection() {
         sectionRef.current
       );
 
-      // Card rotations are layout state — always apply, motion pref irrelevant
-      cards.forEach((card) => {
-        gsap.set(card, { rotation: Number(card.dataset.rotate ?? 0) });
-      });
+      // ── ScrollTrigger for page scroll rotation ────────────────────────
+      if (motionSafe()) {
+        gsap.fromTo(
+          scrollRotRef,
+          { current: -34 },
+          {
+            current: 34,
+            ease: "none",
+            scrollTrigger: {
+              trigger: sectionRef.current,
+              start: "top bottom",
+              end: "bottom top",
+              scrub: 1.6,
+            },
+          }
+        );
+      }
 
-      if (!motionSafe()) return;
+      // ── High performance Ticker for Wheel Transforms ──────────────────
+      const tick = () => {
+        const target =
+          scrollRotRef.current + mouseRotRef.current + wheelRotRef.current;
+        currentRotRef.current += (target - currentRotRef.current) * 0.075;
+
+        cards.forEach((card) => {
+          const baseAngle = Number(card.dataset.baseangle ?? 0);
+          const angle = baseAngle + currentRotRef.current;
+
+          // Proximity to center of wheel (0 degrees)
+          const distance = Math.abs(angle);
+          const maxDistance = 72;
+          const factor = Math.max(0, 1 - distance / maxDistance);
+
+          const baseScale = 0.72 + factor * 0.3;
+          const baseOpacity = 0.12 + factor * 0.88;
+          const zIndex = Math.round(factor * 100);
+
+          const filterProgress = parseFloat(
+            card.style.getPropertyValue("--filter-progress") || "1"
+          );
+
+          const finalOpacity = baseOpacity * filterProgress;
+          const finalScale = baseScale * (0.6 + 0.4 * filterProgress);
+
+          gsap.set(card, {
+            rotate: angle,
+            opacity: finalOpacity,
+            scale: finalScale,
+            zIndex: zIndex,
+            x: factor * -18,
+            filter: `saturate(${0.72 + factor * 0.28}) contrast(${
+              0.94 + factor * 0.06
+            })`,
+            pointerEvents: finalOpacity < 0.25 ? "none" : "auto",
+          });
+        });
+      };
+
+      gsap.ticker.add(tick);
+
+      if (!motionSafe()) {
+        return () => {
+          gsap.ticker.remove(tick);
+        };
+      }
 
       // ── Headline words — SplitText mask reveal ────────────────────────
       const wordEls = gsap.utils.toArray<HTMLElement>(
@@ -44,9 +156,6 @@ export function DiscoverySection() {
       const splits: SplitText[] = [];
 
       wordEls.forEach((el) => {
-        // Each .discovery-word contains exactly one word.
-        // type:'words' + mask:'lines' wraps it in an overflow:hidden container
-        // so yPercent:100 creates a clean rise-from-below reveal.
         const split = SplitText.create(el, { type: "words", mask: "lines" });
         splits.push(split);
         allWords.push(...split.words);
@@ -64,8 +173,6 @@ export function DiscoverySection() {
         },
       });
 
-      // Blur tween on parent .discovery-word containers — words are inside overflow:hidden
-      // line masks so blur on the parents materialises cleanly without clipping
       gsap.from(wordEls, {
         filter: "blur(8px)",
         stagger: 0.1,
@@ -78,18 +185,18 @@ export function DiscoverySection() {
         },
       });
 
-      // ── Cards scatter in from right ───────────────────────────────────
-      // Rotation already applied via gsap.set above; this animates x + opacity + blur
+      // ── Cards sweep-in entrance ───────────────────────────────────────
       gsap.from(cards, {
-        x: 240,
+        x: 300,
+        scale: 0.5,
         opacity: 0,
         filter: "blur(10px)",
         stagger: 0.1,
-        duration: 0.9,
+        duration: 1.2,
         ease: "power4.out",
         scrollTrigger: {
           trigger: sectionRef.current,
-          start: "top 70%",
+          start: "top 75%",
           once: true,
         },
       });
@@ -108,12 +215,36 @@ export function DiscoverySection() {
         },
       });
 
-      return () => splits.forEach((s) => s.revert());
+      return () => {
+        splits.forEach((s) => s.revert());
+        gsap.ticker.remove(tick);
+      };
     },
     { scope: sectionRef }
   );
 
-  const visibleProps = properties.slice(0, 4);
+  // ── Hook 2: Animate filter transitions smoothly ────────────────────
+  useGSAP(
+    () => {
+      const cards = gsap.utils.toArray<HTMLElement>(
+        ".property-card",
+        sectionRef.current
+      );
+
+      cards.forEach((card) => {
+        const id = card.dataset.propid;
+        const prop = properties.find((p) => p.id === id);
+        const matches = prop ? matchesFilter(prop) : true;
+
+        gsap.to(card, {
+          "--filter-progress": matches ? 1 : 0,
+          duration: 0.6,
+          ease: "power2.out",
+        });
+      });
+    },
+    { scope: sectionRef, dependencies: [activeFilter] }
+  );
 
   return (
     <section
@@ -129,12 +260,15 @@ export function DiscoverySection() {
     >
       <Crosshairs color="rgba(12,12,14,0.25)" label="(02) — Discovery" />
       <div
-        className="mx-auto flex gap-8"
-        style={{ maxWidth: "1400px", alignItems: "flex-start" }}
+        className="mx-auto flex gap-10"
+        style={{
+          maxWidth: "1400px",
+          alignItems: "flex-start",
+          minHeight: "min(760px, 84vh)",
+        }}
       >
         {/* ══ LEFT COLUMN — 40% ══════════════════════════════════════════ */}
         <div style={{ width: "40%", flexShrink: 0 }}>
-
           {/* Eyebrow */}
           <p
             className="discovery-meta"
@@ -251,95 +385,185 @@ export function DiscoverySection() {
 
         {/* ══ RIGHT COLUMN — 60% ═════════════════════════════════════════ */}
         <div
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+          onWheel={handleWheel}
           style={{
             flex: 1,
             position: "relative",
-            minHeight: "600px",
+            minHeight: "700px",
+            height: "min(780px, 86vh)",
             overflow: "hidden",
+            cursor: "grab",
+            isolation: "isolate",
           }}
         >
-          {visibleProps.map((prop, i) => {
-            const cfg = CARD_CONFIG[i];
+          {/* Fallback message when no cards match */}
+          {properties.filter(matchesFilter).length === 0 && (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                pointerEvents: "none",
+              }}
+            >
+              <p
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "0.8rem",
+                  letterSpacing: "0.1em",
+                  color: "#6B7280",
+                  textTransform: "uppercase",
+                }}
+              >
+                No properties in this category
+              </p>
+            </div>
+          )}
+
+          {properties.map((prop, i) => {
+            const totalProps = properties.length;
+            const baseAngle = (i - (totalProps - 1) / 2) * 17;
+
             return (
               <div
                 key={prop.id}
                 className="property-card absolute"
-                data-rotate={cfg.rotate}
+                data-propid={prop.id}
+                data-baseangle={baseAngle}
+                onClick={() => {
+                  navigate(`/properties/${prop.slug}`, prop.name);
+                }}
                 style={{
-                  top: cfg.top,
-                  right: cfg.right,
-                  width: "240px",
-                  height: "320px",
+                  right: "clamp(0.75rem, 3vw, 3.25rem)",
+                  top: "calc(50% - clamp(200px, 19.5vw, 235px))",
+                  width: "clamp(300px, 28vw, 360px)",
+                  height: "clamp(400px, 39vw, 470px)",
                   backgroundColor: "#FAFAF8",
                   overflow: "hidden",
-                  boxShadow: "0 8px 40px rgba(12,12,14,0.15)",
-                  // transform/rotation owned by GSAP via gsap.set
-                }}
+                  border: "1px solid rgba(12,12,14,0.1)",
+                  boxShadow: "0 28px 70px rgba(12,12,14,0.18)",
+                  transformOrigin: "clamp(390px, 44vw, 610px) 50%",
+                  cursor: "pointer",
+                  "--filter-progress": "1",
+                  willChange: "transform, opacity, filter",
+                } as React.CSSProperties}
               >
-                {/* Image — top 60% */}
                 <div
+                  className="property-card-inner"
                   style={{
-                    position: "relative",
                     width: "100%",
-                    height: "60%",
-                    backgroundColor: "#C8B89A", // fallback until image loads
-                  }}
-                >
-                  <Image
-                    src={prop.image}
-                    alt={`${prop.name} — ${prop.location}`}
-                    fill
-                    sizes="240px"
-                    style={{ objectFit: "cover" }}
-                  />
-                </div>
-
-                {/* Meta — bottom 40% */}
-                <div
-                  style={{
-                    padding: "0.875rem 1rem",
-                    height: "40%",
+                    height: "100%",
                     display: "flex",
                     flexDirection: "column",
-                    justifyContent: "space-between",
+                    transformOrigin: "center center",
                   }}
                 >
-                  <div>
+                  {/* Image — top 60% */}
+                  <div
+                    style={{
+                      position: "relative",
+                      width: "100%",
+                      height: "72%",
+                      padding: "0.55rem",
+                      backgroundColor: "#F2E9DA",
+                    }}
+                  >
                     <div
                       style={{
-                        fontFamily: "var(--font-body)",
-                        fontSize: "1rem",
-                        fontWeight: 700,
-                        color: "#0C0C0E",
-                        marginBottom: "0.2rem",
-                        letterSpacing: "-0.01em",
+                        position: "relative",
+                        width: "100%",
+                        height: "100%",
+                        backgroundColor: "#E7DAC7",
+                        overflow: "hidden",
                       }}
                     >
-                      {prop.price}
-                    </div>
-                    <div
-                      style={{
-                        fontFamily: "var(--font-body)",
-                        fontWeight: 300,
-                        fontSize: "0.72rem",
-                        color: "#6B7280",
-                        lineHeight: 1.4,
-                      }}
-                    >
-                      {prop.location}
+                      <Image
+                        src={prop.image}
+                        alt={`${prop.name} — ${prop.location}`}
+                        fill
+                        sizes="(max-width: 900px) 300px, 360px"
+                        style={{
+                          objectFit: "cover",
+                          objectPosition: "center",
+                          transform: "scale(1.03)",
+                        }}
+                      />
                     </div>
                   </div>
 
+                  {/* Meta — bottom 40% */}
                   <div
                     style={{
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "0.6rem",
-                      letterSpacing: "0.12em",
-                      color: "#D4873A",
-                      textTransform: "uppercase",
+                      padding: "1rem 1.1rem 1.1rem",
+                      height: "28%",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
                     }}
                   >
-                    {prop.type}
+                    <div>
+                      <div
+                        style={{
+                          fontFamily: "var(--font-body)",
+                          fontSize: "1.05rem",
+                          fontWeight: 500,
+                          color: "#0C0C0E",
+                          marginBottom: "0.18rem",
+                          letterSpacing: 0,
+                        }}
+                      >
+                        {prop.name}
+                      </div>
+                      <div
+                        style={{
+                          fontFamily: "var(--font-body)",
+                          fontWeight: 300,
+                          fontSize: "0.76rem",
+                          color: "#6B7280",
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        {prop.location}
+                      </div>
+                    </div>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: "0.75rem",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontFamily: "var(--font-mono)",
+                          fontSize: "0.64rem",
+                          letterSpacing: "0.1em",
+                          color: "#0C0C0E",
+                          textTransform: "uppercase",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {prop.price}
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: "var(--font-mono)",
+                          fontSize: "0.6rem",
+                          letterSpacing: "0.12em",
+                          color: "#D4873A",
+                          textTransform: "uppercase",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {prop.type}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
