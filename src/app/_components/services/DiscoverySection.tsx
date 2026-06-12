@@ -83,11 +83,12 @@ export function DiscoverySection() {
 
       // ── ScrollTrigger for page scroll rotation ────────────────────────
       if (motionSafe()) {
+        const isMobile = window.matchMedia("(max-width: 767px)").matches;
         gsap.fromTo(
           scrollRotRef,
-          { current: -34 },
+          { current: isMobile ? -50 : -34 },
           {
-            current: 34,
+            current: isMobile ? 50 : 34,
             ease: "none",
             scrollTrigger: {
               trigger: sectionRef.current,
@@ -475,6 +476,15 @@ export function DiscoverySection() {
                   willChange: "transform, opacity, filter",
                 } as React.CSSProperties}
               >
+                <style>{`
+                  @media (max-width: 767px) {
+                    .property-card[data-propid="${prop.id}"] {
+                      width: clamp(260px, 70vw, 300px) !important;
+                      height: clamp(350px, 90vw, 400px) !important;
+                      transform-origin: center center !important;
+                    }
+                  }
+                `}</style>
                 <div
                   className="property-card-inner"
                   style={{

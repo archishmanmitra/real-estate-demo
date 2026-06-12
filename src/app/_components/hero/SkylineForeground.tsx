@@ -7,12 +7,12 @@
  * Includes a construction crane and scattered lit amber windows.
  */
 
-export function SkylineForeground({ className }: { className?: string }) {
+export function SkylineForeground({ className, preserveAspectRatio = "none" }: { className?: string; preserveAspectRatio?: string }) {
   return (
     <svg
       className={className}
       viewBox="0 0 1440 520"
-      preserveAspectRatio="none"
+      preserveAspectRatio={preserveAspectRatio}
       aria-hidden="true"
       style={{ display: "block", width: "100%", height: "100%" }}
     >
