@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* ── GSAP load-flash prevention ─────────────────────────────────────────── */
+/* Hidden via CSS before JS hydrates; GSAP reveals via set() in useGSAP.    */
+.hero-tagline { opacity: 0; }
+
 @theme {
   --color-ink:    #0C0C0E;
   --color-coal:   #131318;  /* lifted ink — card surfaces, alternating bands */

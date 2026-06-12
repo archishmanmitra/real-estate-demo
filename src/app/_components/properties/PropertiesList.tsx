@@ -96,6 +96,19 @@ export function PropertiesList() {
     <>
       {/* ── Scoped styles ───────────────────────────────────────────── */}
       <style>{`
+        /* ── PropertiesList mobile ───────────────────────────────────── */
+        @media (max-width: 639px) {
+          /* Less left indent on accordion content */
+          .accordion-content-inner { padding-left: 1rem !important; }
+          /* Hide /See more text to save space */
+          .prop-see-more { display: none; }
+          /* Slightly tighter row padding */
+          .prop-row { padding-top: 1.1rem !important; padding-bottom: 1.1rem !important; }
+          /* Section header: wrap on narrow screens */
+          .props-header { flex-wrap: wrap; gap: 0.5rem; }
+          .props-header span:last-child { display: none; }
+        }
+
         /* Button reset for accordion trigger rows */
         .prop-row {
           all: unset;
@@ -169,6 +182,7 @@ export function PropertiesList() {
 
           {/* Section header labels */}
           <div
+            className="props-header"
             style={{
               display: "flex",
               justifyContent: "space-between",
@@ -260,6 +274,7 @@ export function PropertiesList() {
 
                   {/* /See more — right-aligned mono */}
                   <span
+                    className="prop-see-more"
                     style={{
                       marginLeft: "auto",
                       fontFamily: "var(--font-mono)",
@@ -294,6 +309,7 @@ export function PropertiesList() {
                 {/* Expanded content */}
                 <Accordion.Content className="accordion-content">
                   <div
+                    className="accordion-content-inner"
                     style={{
                       padding: "0 0 1.75rem 4rem",
                     }}

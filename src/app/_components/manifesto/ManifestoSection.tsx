@@ -64,6 +64,11 @@ export function ManifestoSection() {
         position: "relative",
       }}
     >
+      <style>{`
+        @media (max-width: 639px) {
+          .manifesto-body { margin-left: 0 !important; margin-right: 0 !important; max-width: 100% !important; }
+        }
+      `}</style>
       <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
         <p
           style={{
@@ -117,6 +122,7 @@ export function ManifestoSection() {
             maxWidth: "30rem",
             marginTop: "2.75rem",
             marginLeft: "auto",
+            marginRight: 0,
           }}
         >
           {BODY}

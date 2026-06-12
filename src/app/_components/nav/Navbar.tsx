@@ -113,6 +113,15 @@ export function Navbar() {
           color: #FAFAF8;
         }
         .menu-label p { position: absolute; inset: 0; margin: 0; }
+
+        /* ── Navbar responsive ───────────────────────────────────────── */
+        @media (max-width: 479px) {
+          .nav-inner { padding-left: 1rem !important; padding-right: 1rem !important; }
+          .nav-cta-wrap { display: none !important; }
+        }
+        @media (min-width: 480px) and (max-width: 767px) {
+          .nav-inner { padding-left: 1.25rem !important; padding-right: 1.25rem !important; }
+        }
       `}</style>
 
       <header
@@ -120,7 +129,7 @@ export function Navbar() {
         className="fixed top-0 left-0 right-0 z-50"
         style={{ backgroundColor: "transparent" }}
       >
-        <div className="flex items-center justify-between px-8 py-5">
+        <div className="nav-inner flex items-center justify-between px-8 py-5">
           {/* Logo */}
           <button
             onClick={() => {
@@ -160,8 +169,8 @@ export function Navbar() {
             </span>
           </button>
 
-          {/* CTA — magnetic, hides while menu open */}
-          <motion.div variants={opacity} animate={!isActive ? "open" : "closed"}>
+          {/* CTA — magnetic, hides while menu open, hidden on xs */}
+          <motion.div className="nav-cta-wrap" variants={opacity} animate={!isActive ? "open" : "closed"}>
             <button
               ref={btnRef}
               className="nav-cta"

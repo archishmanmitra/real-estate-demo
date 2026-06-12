@@ -113,6 +113,29 @@ export function FeatureSection() {
       className="feature-section relative overflow-hidden"
       style={{ height: "100vh" }}
     >
+      <style>{`
+        /* ── FeatureSection mobile ────────────────────────────────────── */
+        @media (max-width: 767px) {
+          .amenity-arrow { display: none !important; }
+
+          /* Reposition all cards to a bottom row on mobile */
+          .feature-section .amenity-card {
+            top: auto !important;
+            bottom: 5rem !important;
+            left: auto !important;
+            right: auto !important;
+            width: clamp(100px, 28vw, 148px) !important;
+            padding: 0.65rem !important;
+          }
+          /* 3 cards = last 3 siblings in the section */
+          .feature-section .amenity-card:nth-last-child(3) { left: 0.625rem !important; }
+          .feature-section .amenity-card:nth-last-child(2) {
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+          }
+          .feature-section .amenity-card:nth-last-child(1) { right: 0.625rem !important; }
+        }
+      `}</style>
       <motion.div
         className="absolute"
         style={{

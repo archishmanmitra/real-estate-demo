@@ -69,7 +69,11 @@ export function HeroSection() {
 
   useGSAP(
     () => {
-      if (!motionSafe()) return;
+      // Non-motion path: reveal the tagline immediately (CSS hides it by default)
+      if (!motionSafe()) {
+        gsap.set(taglineRef.current, { opacity: 1 });
+        return;
+      }
 
       const split = SplitText.create(taglineRef.current!, {
         type: "chars",
@@ -106,6 +110,8 @@ export function HeroSection() {
           { yPercent: 18, duration: 1.2, ease: "expo.out" },
           0.3
         )
+        // reveal h2 container (CSS keeps it opacity:0) then animate split chars in
+        .set(taglineRef.current, { opacity: 1 }, 1.19)
         .from(
           split.chars,
           { yPercent: 100, stagger: 0.03, duration: 0.8, ease: "power3.out" },
@@ -154,6 +160,30 @@ export function HeroSection() {
       className="hero relative overflow-hidden"
       style={{ minHeight: "100dvh", backgroundColor: "#0C0C0E" }}
     >
+      <style>{`
+        /* ── Hero responsive ─────────────────────────────────── */
+        .hero-tagline-wrap {
+          position: absolute;
+          bottom: 2.5rem;
+          right: 2rem;
+          z-index: 30;
+          text-align: right;
+          max-width: 22rem;
+        }
+        @media (max-width: 639px) {
+          .hero-tagline-wrap {
+            bottom: 1.5rem;
+            left: 1rem;
+            right: 1rem;
+            text-align: left;
+            max-width: 100%;
+          }
+          .hero-tagline-wrap .hero-sub {
+            margin-left: 0 !important;
+            max-width: 100%;
+          }
+        }
+      `}</style>
       {/* ── Layer 0: full-bleed photograph (farthest) ─────────────────── */}
       <div
         ref={bgRef}
@@ -230,7 +260,7 @@ export function HeroSection() {
       </h1>
 
       <div
-        className="absolute"
+        className="absolute hidden sm:block"
         style={{
           top: "5.5rem",
           left: "2rem",
@@ -246,7 +276,7 @@ export function HeroSection() {
       </div>
 
       <div
-        className="hero-labels absolute flex flex-col items-end"
+        className="hero-labels absolute hidden sm:flex flex-col items-end"
         style={{ top: "5.5rem", right: "2rem", zIndex: 30, gap: "0.4rem" }}
       >
         {["Agents//", "Properties//", "Enquiries//"].map((lbl) => (
@@ -266,16 +296,7 @@ export function HeroSection() {
       </div>
 
       {/* Bottom-right: tagline + sub-copy (over the dark silhouette) */}
-      <div
-        className="absolute"
-        style={{
-          bottom: "2.5rem",
-          right: "2rem",
-          zIndex: 30,
-          textAlign: "right",
-          maxWidth: "22rem",
-        }}
-      >
+      <div className="hero-tagline-wrap">
         <h2
           ref={taglineRef}
           className="hero-tagline"
@@ -301,6 +322,7 @@ export function HeroSection() {
             lineHeight: 1.7,
             maxWidth: "20rem",
             marginLeft: "auto",
+            marginRight: 0,
           }}
         >
           A real estate partner who brings clarity to every transaction — from
@@ -327,9 +349,9 @@ export function HeroSection() {
         </span>
       </div>
 
-      {/* Left edge: vertical social strip */}
+      {/* Left edge: vertical social strip — hidden on mobile (overlaps content) */}
       <div
-        className="absolute flex flex-col"
+        className="absolute hidden sm:flex flex-col"
         style={{
           left: "1.75rem",
           top: "50%",

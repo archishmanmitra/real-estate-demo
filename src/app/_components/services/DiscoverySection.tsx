@@ -258,17 +258,48 @@ export function DiscoverySection() {
         paddingRight: "clamp(1.5rem,5vw,5rem)",
       }}
     >
+      <style>{`
+        .discovery-inner {
+          display: flex;
+          gap: 2.5rem;
+          max-width: 1400px;
+          margin: 0 auto;
+          align-items: flex-start;
+          min-height: min(760px, 84vh);
+        }
+        .discovery-left {
+          width: 40%;
+          flex-shrink: 0;
+        }
+        .discovery-right {
+          flex: 1;
+          position: relative;
+          min-height: 700px;
+          height: min(780px, 86vh);
+          overflow: hidden;
+          cursor: grab;
+          isolation: isolate;
+        }
+        @media (max-width: 767px) {
+          .discovery-inner {
+            flex-direction: column;
+            gap: 2rem;
+            min-height: unset;
+          }
+          .discovery-left {
+            width: 100%;
+          }
+          .discovery-right {
+            width: 100%;
+            min-height: 480px;
+            height: 60vmax;
+          }
+        }
+      `}</style>
       <Crosshairs color="rgba(12,12,14,0.25)" label="(02) — Discovery" />
-      <div
-        className="mx-auto flex gap-10"
-        style={{
-          maxWidth: "1400px",
-          alignItems: "flex-start",
-          minHeight: "min(760px, 84vh)",
-        }}
-      >
+      <div className="discovery-inner">
         {/* ══ LEFT COLUMN — 40% ══════════════════════════════════════════ */}
-        <div style={{ width: "40%", flexShrink: 0 }}>
+        <div className="discovery-left">
           {/* Eyebrow */}
           <p
             className="discovery-meta"
@@ -385,18 +416,10 @@ export function DiscoverySection() {
 
         {/* ══ RIGHT COLUMN — 60% ═════════════════════════════════════════ */}
         <div
+          className="discovery-right"
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
           onWheel={handleWheel}
-          style={{
-            flex: 1,
-            position: "relative",
-            minHeight: "700px",
-            height: "min(780px, 86vh)",
-            overflow: "hidden",
-            cursor: "grab",
-            isolation: "isolate",
-          }}
         >
           {/* Fallback message when no cards match */}
           {properties.filter(matchesFilter).length === 0 && (

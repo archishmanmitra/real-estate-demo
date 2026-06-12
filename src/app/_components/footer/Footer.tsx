@@ -163,6 +163,8 @@ export function Footer() {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+            flexWrap: "wrap",
+            gap: "0.5rem",
           }}
         >
           <span
