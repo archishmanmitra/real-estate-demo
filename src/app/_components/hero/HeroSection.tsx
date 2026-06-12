@@ -125,28 +125,41 @@ export function HeroSection() {
         );
 
       // ── Scroll depth separation (far lags, near leads) ───────────────
-      gsap.to(".hero-bg", {
-        yPercent: 26,
-        ease: "none",
-        scrollTrigger: {
-          trigger: heroRef.current,
-          start: "top top",
-          end: "bottom top",
-          scrub: true,
-          invalidateOnRefresh: true,
-        },
-      });
-      gsap.to(".akshar-wordmark", {
-        yPercent: 13,
-        ease: "none",
-        scrollTrigger: {
-          trigger: heroRef.current,
-          start: "top top",
-          end: "bottom top",
-          scrub: true,
-          invalidateOnRefresh: true,
-        },
-      });
+      // fromTo + immediateRender:false prevents the load animation's
+      // immediateRender (yPercent:55) from being captured as the scrub
+      // start — which caused the wordmark to travel UP (55→13) on scroll.
+      gsap.fromTo(
+        ".hero-bg",
+        { yPercent: 0 },
+        {
+          yPercent: 26,
+          ease: "none",
+          immediateRender: false,
+          scrollTrigger: {
+            trigger: heroRef.current,
+            start: "top top",
+            end: "bottom top",
+            scrub: true,
+            invalidateOnRefresh: true,
+          },
+        }
+      );
+      gsap.fromTo(
+        ".akshar-wordmark",
+        { yPercent: 0 },
+        {
+          yPercent: 40,
+          ease: "none",
+          immediateRender: false,
+          scrollTrigger: {
+            trigger: heroRef.current,
+            start: "top top",
+            end: "bottom top",
+            scrub: true,
+            invalidateOnRefresh: true,
+          },
+        }
+      );
       // foreground gets no offset — it leads naturally as the page scrolls
 
       return () => split.revert();
