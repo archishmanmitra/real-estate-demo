@@ -86,9 +86,9 @@ function Double({ pair, reversed = false }: { pair: [Property, Property]; revers
   };
 
   return (
-    <div onMouseMove={manageMouseMove} className="flex" style={{ gap: "1rem" }}>
-      <Panel ref={firstImage} prop={pair[0]} width={reversed ? "33.33%" : "66.66%"} />
-      <Panel ref={secondImage} prop={pair[1]} width={reversed ? "66.66%" : "33.33%"} />
+    <div onMouseMove={manageMouseMove} className="flex flex-col md:flex-row" style={{ gap: "1rem" }}>
+      <Panel ref={firstImage} prop={pair[0]} width={undefined} className="md:w-[66.66%]" />
+      <Panel ref={secondImage} prop={pair[1]} width={undefined} className="md:w-[33.33%]" />
     </div>
   );
 }
@@ -97,16 +97,19 @@ function Panel({
   ref,
   prop,
   width,
+  className,
 }: {
   ref: React.Ref<HTMLDivElement>;
   prop: Property;
-  width: string;
+  width?: string;
+  className?: string;
 }) {
   const { navigate } = useTransitionRouter();
   return (
     <div
       ref={ref}
-      style={{ width, cursor: "pointer" }}
+      className={className}
+      style={{ width: width ?? '100%', cursor: "pointer" }}
       role="link"
       tabIndex={0}
       aria-label={`View ${prop.name}`}

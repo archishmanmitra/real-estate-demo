@@ -68,7 +68,7 @@ function Row({ prop }: { prop: Property }) {
 
   return (
     <div
-      onMouseEnter={() => setIsActive(true)}
+      onMouseEnter={() => !reduce && setIsActive(true)}
       onMouseLeave={() => setIsActive(false)}
       onClick={() => navigate(`/properties/${prop.slug}`, prop.name)}
       onKeyDown={(e) => {
@@ -80,7 +80,7 @@ function Row({ prop }: { prop: Property }) {
       role="link"
       tabIndex={0}
       aria-label={`View ${prop.name}`}
-      className="slide-row flex items-center justify-center"
+      className="slide-row flex items-center justify-center flex-wrap md:flex-nowrap"
       style={{
         borderBottom: "1px solid rgba(255,255,255,0.08)",
         padding: "0.6rem 0",
@@ -91,7 +91,7 @@ function Row({ prop }: { prop: Property }) {
       <p
         style={{
           fontFamily: "var(--font-display)",
-          fontSize: "clamp(2.4rem,6vw,5rem)",
+          fontSize: "clamp(2rem, 5vw, 5rem)",
           fontWeight: 300,
           color: isActive ? "#D4873A" : "#FAFAF8",
           margin: 0,
@@ -106,7 +106,7 @@ function Row({ prop }: { prop: Property }) {
         variants={reduce ? undefined : anim}
         initial="initial"
         animate={isActive || reduce ? "open" : "closed"}
-        className="flex justify-center"
+        className="hidden md:flex justify-center"
         style={{ overflow: "hidden", flexShrink: 1 }}
         aria-hidden="true"
       >
@@ -131,7 +131,7 @@ function Row({ prop }: { prop: Property }) {
       <p
         style={{
           fontFamily: "var(--font-display)",
-          fontSize: "clamp(2.4rem,6vw,5rem)",
+          fontSize: "clamp(2rem, 5vw, 5rem)",
           fontWeight: 300,
           fontStyle: "italic",
           color: isActive ? "#D4873A" : "#FAFAF8",

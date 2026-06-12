@@ -75,7 +75,7 @@ export function SkylineDivider() {
       aria-hidden="true"
       style={{
         backgroundColor: "#0C0C0E",
-        padding: "clamp(2rem,6vh,4rem) clamp(1.5rem,5vw,5rem) 0",
+        padding: "clamp(2rem,6vh,4rem) clamp(1.5rem,5vw,5rem) clamp(2rem,4vh,4rem)",
         overflow: "hidden",
       }}
     >
